@@ -13,10 +13,7 @@ const result = await page.query('campaign-metrics', { days: 30 });
 
 ```json
 {
-  "id": "42",
-  "name": "Ada",
-  "locale": "en",
-  "teams": [{ "id": "7", "name": "Marketing" }]
+  "locale": "en"
 }
 ```
 
@@ -51,10 +48,24 @@ The iframe Content Security Policy disables direct network access. All data acce
 
 ## Connected preview
 
-The hosted draft preview can read real data under the current author and viewer
-permissions. Use the preview URL returned by the MCP. The planned local CLI
-will relay authorized bindings through Pubvero; it is not yet available.
-Do not replace connected results with fixtures when authorization or a query fails.
+Hosted and local previews read real data under current author and viewer permissions.
+The optional CLI workflow is `dev page.html --page <id> --server <https-url>`.
+It authenticates with OAuth/PKCE, starts a loopback callback automatically,
+and serves local HTML in an isolated iframe. The Page and approved bindings
+must already exist; create them through your MCP connection first.
+
+`get-page-runtime` exposes the draft's `page.version_id`, HTML, safe binding
+names/schemas and viewer locale. `execute-page-binding` requires `page_id`,
+`version_id`, `name` and `parameters`. A changed draft, revoked access or
+missing binding fails explicitly. Reload context instead of silently querying
+another revision. The browser never receives OAuth tokens.
+
+`push page.html --page <id> --server <https-url>` calls `update-page` and returns
+`version_id`. After explicit publication intent, use
+`publish --page <id> --revision <version_id> --yes --server <https-url>`.
+Neither preview nor upload publishes. Commands authorize their own session;
+no durable tokens are saved. Read the CLI command guide for invocation options.
+Do not replace failed connected results with fixtures.
 
 ## Local fixture workflow
 
@@ -65,10 +76,7 @@ Save the generated Page as `page.html`. Before its application script, add an ex
   window.page = Object.freeze({
     async viewer() {
       return {
-        id: 'local-viewer',
-        name: 'Local Preview',
         locale: 'en',
-        teams: [{ id: 'marketing', name: 'Marketing' }],
       };
     },
     async query(name, parameters = {}) {

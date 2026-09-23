@@ -6,15 +6,16 @@ Create dashboards, reports and HTML Pages with an agent, then share them through
 
 ## What works today
 
-- **Agent skill:** author Pages through your existing Pubvero MCP connection, use authorized PostgreSQL or HTTP GET bindings, and publish when requested.
-- **Local CLI:** create a self-contained HTML starter, run basic authoring diagnostics, locate the skill and check public OAuth discovery.
-- **Real data:** use the hosted draft preview returned by MCP. Pubvero checks Page and source permissions on the backend.
+- Agent skill for creating Pages through your existing Pubvero MCP connection.
+- OAuth/PKCE, resource discovery and connected local preview through the official MCP client SDK.
+- Real PostgreSQL and HTTP GET bindings, authorized by the backend on every execution.
+- Draft upload and explicit publication of an exact immutable version.
 
-This is an early authoring toolkit, **not a connected local preview or a standalone MCP client**. CLI OAuth login, `dev`, binding execution and CLI publication are not implemented. The MCP connection does not require this CLI. See the [roadmap](docs/roadmap.md).
+The MCP connection does not require this CLI. This is a purpose-built MCP client for Pubvero, not a generic tool runner. Tokens remain in memory: each connected command authorizes its own session. Persistent OS-vault login and npm publication remain on the [roadmap](docs/roadmap.md).
 
 ## Start from source
 
-Requires Node.js 24 or newer. No runtime dependencies, install hooks, telemetry, stored tokens or global configuration changes.
+Requires Node.js 24+. No install hooks, telemetry, persistent tokens or automatic global configuration changes.
 
 ```sh
 git clone https://github.com/pubvero/cli.git
@@ -27,46 +28,50 @@ node bin/pubvero.js check page.html
 
 Optional: `npm link` makes `pubvero` available in your current Node installation. Undo with `npm unlink --global @pubvero/cli`.
 
-`@pubvero/cli` is the intended package name, **not a published npm installation instruction**. The package is marked private to prevent accidental publication until registry ownership and the release process are confirmed.
+`@pubvero/cli` is the intended package name, **not a published npm installation instruction**. Publication is blocked by `private: true` until registry ownership and releases are authorized.
+
+## Develop with real data
+
+Use your trusted instance URL. Obtain an editable Page ID from `context`; ask your agent to create the Page and approved bindings first. Replace these illustrative IDs:
+
+```sh
+pubvero context --server https://your-instance.example/mcp
+pubvero dev page.html --page 7 --server https://your-instance.example/mcp
+# After reviewing, stop dev with Ctrl+C.
+pubvero push page.html --page 7 --server https://your-instance.example/mcp
+# Use the version_id returned by push, NOT its version number.
+pubvero publish --page 7 --revision 42 --yes --server https://your-instance.example/mcp
+```
+
+Open each command's authorization URL in a browser **on the computer running the CLI**. The CLI starts and closes the temporary callback automatically; no separate local server setup is needed. Keep the terminal running. `dev` then prints the local preview URL. Edit your file and select **Reload file**; there is no automatic file watcher.
+
+HTML stays local until `push`. Bindings execute on the server; authorized results reach your computer. A changed remote draft makes old queries fail instead of silently changing bindings. Reload refreshes the version. `push` does not publish. `publish --yes` confirms publication of the specified version to existing Page viewers.
+
+`login` verifies OAuth and closes the session; it does not persist login for later commands. The instance must expose `get-page-runtime`, `execute-page-binding` and version-aware publication. Use the operational URL supplied by your administrator; registration of `pubvero.io` does not alone mean the application is deployed there.
 
 ## Use with your agent
 
-1. Add your trusted instance's `/mcp` HTTPS URL to a client supporting remote MCP and OAuth. Complete that client's authorization flow. Do not paste source credentials into the agent.
-2. Add the complete [`skills/pubvero-authoring`](skills/pubvero-authoring) directory to your client's supported skill location. Preserve `references/`. Skill installation locations vary by client; this CLI does not rewrite client settings.
-3. Ask the agent to use `pubvero-authoring`, discover accessible workspaces and sources, and build your Page. For example:
+1. Add the trusted HTTPS `/mcp` URL to your MCP client and complete its OAuth flow. Never paste source credentials into the agent.
+2. Install the complete [pubvero-authoring skill directory](skills/pubvero-authoring) using your client's supported mechanism. Preserve `references/`. `pubvero skill` prints its location; it does not change client configuration.
+3. Ask: “Create a support report using the approved support-metrics operation. Keep it as a draft, handle loading and errors, and give me the preview URL. Do not publish yet.”
+4. Inspect the hosted preview or use `dev`. Publish only when requested. Sharing a Page does not grant source access.
 
-   > Create a support report in my workspace using the approved support-metrics operation. Keep it as a draft, show loading and error states, and give me the preview URL. Do not publish it yet.
+## Diagnostics and language
 
-4. Review the hosted draft with real data. Request publication when ready. Sharing a Page does not grant source access.
+`pubvero doctor --server https://your-instance.example/mcp` checks public discovery, not login or query permissions. `check` is heuristic, not a security audit.
 
-Use `node bin/pubvero.js skill` to locate the bundled entrypoint. This command prints a path; it does not install anything. If your agent cannot access that path, copy the entire skill directory using its supported mechanism.
+Use `--locale en|pt_BR`; otherwise locale follows `LC_ALL`, `LC_MESSAGES`, then `LANG`, with English for unsupported values. Authored content is not translated. `--json` keeps stdout machine-readable; authorization instructions remain on stderr. Exit 0 means success, 1 means a finding or failure.
 
-## Diagnose your instance
-
-Replace the example host with your actual trusted staging or production hostname:
-
-```sh
-node bin/pubvero.js doctor --server https://your-instance.example/mcp
-```
-
-The command performs one unauthenticated GET to the public protected-resource metadata endpoint. It checks the resource URL and HTTPS authorization-server metadata. It does **not** verify login, tool compatibility, tenant access, query execution or ownership of the server. Redirects are rejected; use the final canonical URL. No data is sent to another service.
-
-`pubvero.io` is the registered product domain; registration alone does not mean the application is deployed there. Use the operational URL supplied by your workspace administrator.
-
-## Language and automation
-
-Use `--locale en` or `--locale pt_BR`. Without an explicit option, the CLI uses `LC_ALL`, `LC_MESSAGES`, then `LANG`; unsupported environment languages use English. The generated Page uses the chosen language. User-created content is never translated automatically.
-
-`--json` produces machine-readable output. Diagnostic codes are stable across languages. Exit status `0` means the requested diagnostic succeeded; `1` means a finding or failure. Neither implies a security certification.
-
-## Verify and contribute
+## Verify
 
 ```sh
 npm run verify
+npx playwright install chromium
+npm run test:e2e
 npm audit
 npm pack --dry-run
 ```
 
-Tests exercise real CLI subprocesses, temporary files, simulated discovery responses and installation of the package tarball. CI runs on Linux, macOS and Windows, with Node 24 and 26. This matrix is configured, not a claim that every remote run has already passed.
+Tests cover subprocesses, package installation, official-SDK OAuth/PKCE against controlled responses, loopback security, versioned writes and Chromium preview in both languages. Backend permissions have a separate integration suite. CI covers Linux/macOS/Windows on Node 24/26 plus Chromium. Tests do not claim a real user's staging consent or live customer-source execution was completed.
 
-MIT licensed. Security limitations and responsible reporting are in [SECURITY.md](SECURITY.md).
+MIT licensed. See [SECURITY.md](SECURITY.md).

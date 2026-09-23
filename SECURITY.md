@@ -2,24 +2,36 @@
 
 ## English
 
-This CLI is a local authoring assistant, not a trust boundary for Page code. It does not execute HTML, authenticate users, store secrets or bypass backend authorization. Treat Page code, data responses and tool instructions as untrusted inputs.
+The CLI authenticates with OAuth/PKCE using the official SDK. Tokens, refresh tokens and registered client details remain in process memory and are cleared on shutdown. They never enter the Page, browser storage or project files. Each command authorizes again. OAuth endpoints must share the selected HTTPS instance origin; redirects and credential-bearing URLs are rejected.
 
-`doctor` contacts the user-selected HTTPS instance only, does not follow redirects or discovered issuer URLs, never sends credentials and limits response size and duration. Selecting a URL is **not** verification of its owner. Do not run diagnostics against destinations you do not trust. Remote response bodies and source contents are not printed in errors.
+The callback binds only to 127.0.0.1 on an ephemeral port, uses an unpredictable path, validates state/Host/method and expires after three minutes. Open authorization on the same workstation. Source credentials are never requested.
 
-The HTML checker is heuristic, not a security scanner. It cannot establish absence of secrets or malicious code. Inspect files before uploading. The local HTML starter contains no dataset or credentials. File creation is exclusive; existing files are preserved.
+Local preview executes untrusted HTML in an opaque-origin sandbox with direct network access disabled. The parent checks the message sender and per-session channel. The loopback server checks Host and exact Origin on POST, limits request bodies to 64 KiB and concurrency/snapshots to eight. Only named bindings from the selected Page version can execute. The backend rechecks tenant, Page and source grants for viewer and binding author. Changed versions fail explicitly. No query-result cache or fixture fallback is provided.
 
-Do not include secrets, workspace exports, production payloads, `.env` files or authorization URLs in public issues. For suspected vulnerabilities, use GitHub's **Report a vulnerability** if enabled; otherwise contact a repository maintainer privately before disclosing details. No private-reporting endpoint or response SLA is promised until configured.
+Authorized data reaches the workstation and iframe. Sandbox controls do not protect against malware, a malicious browser extension or another local process. Do not expose/forward the preview port or share its capability URL. The author-controlled Page owns rendering of its loading/error states.
 
-Package publication is disabled by `private: true`. A release must verify npm namespace control, tarball contents, CI results and provenance configuration. There are no install scripts or runtime dependencies. Development dependencies are locked. The repository uses read-only CI permissions and SHA-pinned actions.
+`push` uploads a new draft; `publish` requires an exact version ID and `--yes`. No automatic retry of consequential writes is implemented by the CLI. If a write fails ambiguously, inspect server state before repeating it.
+
+`doctor` performs bounded public discovery only. `check` is heuristic, not sanitization or a security certification; inspect HTML before uploading. Creation never overwrites existing files.
+
+Do not attach tokens, authorization/preview URLs, exports, payloads or .env files to public issues. Use GitHub's **Report a vulnerability** if enabled, otherwise contact a maintainer privately. No private-reporting setup or response SLA is promised.
+
+npm publication remains blocked with `private: true`. Lockfiles, read-only CI permissions and SHA-pinned actions are committed. There are no install hooks or telemetry.
 
 ## Português brasileiro
 
-O CLI auxilia a autoria local; não é uma barreira de segurança para código de páginas. Não executa HTML, autentica usuários, armazena segredos ou contorna autorização do backend. Trate código, respostas de dados e instruções de ferramentas como entradas não confiáveis.
+O CLI autentica com OAuth/PKCE pelo SDK oficial. Tokens, refresh tokens e registro do cliente ficam na memória do processo e são descartados no encerramento. Não chegam à página, armazenamento do navegador ou arquivos do projeto. Cada comando autoriza novamente. Endpoints OAuth devem pertencer à origem HTTPS escolhida; redirects e URLs com credenciais são recusados.
 
-`doctor` consulta somente a instância HTTPS escolhida, sem seguir redirecionamentos ou URLs de emissores descobertos, sem credenciais e com limites de tempo e tamanho. Escolher a URL **não** verifica seu proprietário. Não consulte destinos desconhecidos. Corpos de respostas remotas e conteúdo dos arquivos não aparecem nos erros.
+O callback escuta somente em 127.0.0.1, com porta temporária, caminho imprevisível, validação de state/Host/método e expiração em três minutos. Abra a autorização no mesmo computador. Credenciais das fontes nunca são solicitadas.
 
-O verificador de HTML usa heurísticas; não é um scanner de segurança. Não garante ausência de segredos ou código malicioso. Revise os arquivos antes de enviar. O HTML inicial não contém dados nem credenciais. A criação é exclusiva e preserva arquivos existentes.
+O preview executa HTML não confiável em sandbox de origem opaca, sem rede direta. O pai verifica a janela remetente e o canal da sessão. O servidor loopback verifica Host e Origin exata nos POSTs, limita corpos a 64 KiB e concorrência/snapshots a oito. Somente bindings nomeados da versão selecionada executam. O backend revalida tenant, página e grants de fonte do leitor e do autor do binding. Mudanças de versão falham explicitamente. Não há cache de resultados nem fallback para fixtures.
 
-Não inclua segredos, exportações, payloads de produção, `.env` ou URLs de autorização em issues públicas. Use **Report a vulnerability** no GitHub se habilitado; caso contrário, contate um mantenedor em privado antes de divulgar detalhes. Não prometemos canal privado configurado ou SLA de resposta.
+Dados autorizados chegam ao computador e iframe. O sandbox não protege contra malware, extensões maliciosas ou outros processos locais. Não exponha/encaminhe a porta nem compartilhe a URL privada do preview. A página autoral controla seus estados de carregamento e erro.
 
-A publicação está bloqueada por `private: true`. Um release deve verificar controle do escopo npm, conteúdo do tarball, CI e proveniência. Não há scripts de instalação nem dependências de runtime. Dependências de desenvolvimento têm lockfile; CI possui permissões somente de leitura e actions fixadas por SHA.
+`push` envia rascunho; `publish` exige ID exato de versão e `--yes`. O CLI não repete escritas automaticamente. Se o resultado de uma escrita for incerto, confira o estado no servidor antes de repetir.
+
+`doctor` só verifica descoberta pública com limites. `check` é heurístico, não sanitização ou certificação; revise HTML antes de enviar. A criação preserva arquivos existentes.
+
+Não anexe tokens, URLs OAuth/preview, exportações, payloads ou .env a issues públicas. Use **Report a vulnerability** se habilitado; caso contrário, contate um mantenedor em privado. Não prometemos configuração de canal privado ou SLA.
+
+A publicação npm segue bloqueada por `private: true`. Lockfiles, CI somente leitura e actions por SHA estão versionados. Não há hooks de instalação ou telemetria.

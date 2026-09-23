@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-23T20:48:23.124Z",
+  "title": "Design System: Pubvero — Local Preview",
+  "extensions": {
+    "shadows": [],
+    "motion": [],
+    "breakpoints": [{ "name": "compact", "value": "600px" }]
+  },
+  "components": [
+    {
+      "name": "Reload",
+      "kind": "button",
+      "refersTo": "reload",
+      "description": "The preview's only action, with a 44px minimum target and visible keyboard focus.",
+      "html": "<button class=\"ds-reload\" type=\"button\">Reload</button>",
+      "css": ".ds-reload{--ds-green:oklch(.385 .095 153);--ds-on-green:oklch(.985 .008 92);font:.875rem/1.5 'Avenir Next',Avenir,'Segoe UI',system-ui,sans-serif;font-weight:600;min-height:44px;padding:10px 20px;border:0;border-radius:9px;background:var(--ds-green);color:var(--ds-on-green);cursor:pointer}.ds-reload:hover{filter:brightness(.92)}.ds-reload:focus-visible{outline:2px solid var(--ds-green);outline-offset:3px}.ds-reload:disabled{opacity:.65;cursor:wait}@media(prefers-color-scheme:dark){.ds-reload{--ds-green:oklch(.71 .125 153);--ds-on-green:oklch(.16 .02 153)}}@media(max-width:600px){.ds-reload{padding:10px 14px}}"
+    },
+    {
+      "name": "Connection and version record",
+      "kind": "custom",
+      "description": "Illustrative metadata typography; actual instance and version values come from the active preview.",
+      "html": "<div class=\"ds-record\"><h1 class=\"ds-title\">Page preview</h1><div class=\"ds-meta\"><span>Instance</span><span role=\"status\" aria-live=\"polite\">Connection · Version</span></div></div>",
+      "css": ".ds-record{font:1rem/1.5 'Avenir Next',Avenir,'Segoe UI',system-ui,sans-serif;color:oklch(.205 .012 92);background:oklch(.992 .006 88);padding:12px 24px;border-bottom:1px solid oklch(.83 .018 84)}.ds-title{font-size:1rem;line-height:1.35;font-weight:600;margin:0;overflow-wrap:anywhere}.ds-meta{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.875rem;color:oklch(.47 .018 82);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}@media(prefers-color-scheme:dark){.ds-record{color:oklch(.935 .012 88);background:oklch(.205 .012 90);border-color:oklch(.34 .018 88)}.ds-meta{color:oklch(.72 .018 88)}}@media(max-width:600px){.ds-record{padding:12px 16px}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Mesa de Emissão",
+    "overview": "This compact authoring surface inherits Pubvero's warm paper, carbon ink and forest action green. The authored Page has visual priority; a quiet operational frame establishes its connection and version. This record describes the implemented preview in `src/preview-view.js`, not the full hosted product's component library.",
+    "keyCharacteristics": [
+      "The Page occupies the available viewport below a compact bar.",
+      "Fine rules and restrained operational text keep the frame quiet.",
+      "Light and dark chrome preserve the same semantic color roles."
+    ],
+    "rules": [
+      {
+        "name": "The Whole-Theme Rule",
+        "body": "Switch every chrome color role together; the Page's theme remains independent.",
+        "section": "colors"
+      }
+    ],
+    "dos": [
+      "Do keep the Page visually dominant and the preview bar compact.",
+      "Do preserve the complete light/dark palette pairing and visible keyboard focus.",
+      "Do keep status and recovery copy explicit and localized."
+    ],
+    "donts": [
+      "Don't add publication controls to the browser preview.",
+      "Don't infer a new logo or marketing component system from this narrow surface.",
+      "Don't present an old snapshot as the result of a failed reload."
+    ]
+  }
+}

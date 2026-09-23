@@ -6,6 +6,7 @@ import { messages, detectLocale } from '../src/messages.js';
 import { CliError } from '../src/errors.js';
 import { initializePage, checkPage } from '../src/pages.js';
 import { doctor } from '../src/doctor.js';
+import { connectedCommand, develop } from '../src/connected.js';
 
 let locale = detectLocale(
   process.env.LC_ALL || process.env.LC_MESSAGES || process.env.LANG,
@@ -37,6 +38,9 @@ try {
         help: { type: 'boolean', short: 'h' },
         version: { type: 'boolean', short: 'v' },
         server: { type: 'string' },
+        page: { type: 'string' },
+        revision: { type: 'string' },
+        yes: { type: 'boolean' },
       },
     });
   } catch {
@@ -62,7 +66,14 @@ try {
   } else if (
     values.version ||
     positionals.length > 2 ||
-    (values.server && command !== 'doctor')
+    (values.server &&
+      !['doctor', 'login', 'context', 'push', 'publish', 'dev'].includes(
+        command,
+      )) ||
+    (values.page !== undefined &&
+      !['push', 'publish', 'dev'].includes(command)) ||
+    ((values.revision !== undefined || values.yes !== undefined) &&
+      command !== 'publish')
   ) {
     throw new CliError('invalid_arguments');
   } else if (command === 'init') {
@@ -78,6 +89,51 @@ try {
   } else if (command === 'doctor' && !file && values.server) {
     const result = await doctor(values.server);
     report(result.code, result.ok);
+  } else if (
+    ['login', 'context', 'push', 'publish', 'dev'].includes(command) &&
+    values.server
+  ) {
+    const controller = new AbortController();
+    const cancel = () => controller.abort();
+    process.once('SIGINT', cancel);
+    process.once('SIGTERM', cancel);
+    try {
+      const options = {
+        ...values,
+        server: values.server,
+        signal: controller.signal,
+        callbackMessage: messages[locale].oauth_callback,
+        onAuthorize(/** @type {URL} */ url) {
+          process.stderr.write(
+            `${messages[locale].oauth_authorize}\n${url.href}\n`,
+          );
+        },
+      };
+      if (command === 'dev') {
+        if (!file) throw new CliError('invalid_arguments');
+        await develop(file, {
+          ...options,
+          locale,
+          onPreview(url) {
+            process.stdout.write(
+              json
+                ? `${JSON.stringify({ ok: true, url, message: messages[locale].preview_ready })}\n`
+                : `${messages[locale].preview_ready}\n${url}\n`,
+            );
+          },
+        });
+      } else {
+        const result = await connectedCommand(command, file, options);
+        if (command === 'login') report('login_ok', true);
+        else
+          process.stdout.write(
+            `${JSON.stringify({ ok: true, result }, null, json ? undefined : 2)}\n`,
+          );
+      }
+    } finally {
+      process.removeListener('SIGINT', cancel);
+      process.removeListener('SIGTERM', cancel);
+    }
   } else if (command === 'skill' && !file) {
     const path = fileURLToPath(
       new URL('../skills/pubvero-authoring/SKILL.md', import.meta.url),

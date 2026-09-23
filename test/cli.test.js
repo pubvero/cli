@@ -125,3 +125,50 @@ test('doctor rejects insecure, credential-bearing and ambiguous URLs before requ
     assert.doesNotMatch(result.stdout + result.stderr, /private-value/);
   }
 });
+
+test('connected commands are discoverable and reject invalid servers before authorization', () => {
+  for (const locale of ['en', 'pt_BR']) {
+    const help = run(['--help', '--locale', locale]);
+    for (const command of ['login', 'context', 'push', 'publish', 'dev'])
+      assert.match(help.stdout, new RegExp(`pubvero ${command}`));
+    for (const args of [
+      ['login'],
+      ['context'],
+      ['push', 'page.html', '--page', '1'],
+      ['dev', 'page.html', '--page', '1'],
+      ['publish', '--page', '1', '--revision', '2', '--yes'],
+    ]) {
+      const result = run([
+        ...args,
+        '--server',
+        'http://example.invalid/mcp',
+        '--locale',
+        locale,
+        '--json',
+      ]);
+      assert.equal(JSON.parse(result.stdout).code, 'invalid_server');
+    }
+  }
+});
+
+test('command-specific flags cannot be silently ignored', () => {
+  for (const args of [
+    ['init', '--yes'],
+    ['check', 'page.html', '--page', '1'],
+    ['context', '--page', '1', '--server', 'https://example.invalid/mcp'],
+    ['login', '--revision', '2', '--server', 'https://example.invalid/mcp'],
+    [
+      'push',
+      'page.html',
+      '--page',
+      '1',
+      '--yes',
+      '--server',
+      'https://example.invalid/mcp',
+    ],
+  ])
+    assert.equal(
+      JSON.parse(run([...args, '--json']).stdout).code,
+      'invalid_arguments',
+    );
+});

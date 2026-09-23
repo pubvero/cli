@@ -34,6 +34,11 @@ export async function initializePage(path, locale, text) {
 
 /** @param {string} path */
 export async function checkPage(path) {
+  return diagnoseHtml(await readPage(path));
+}
+
+/** @param {string} path */
+export async function readPage(path) {
   let handle;
   try {
     handle = await open(path, constants.O_RDONLY | constants.O_NONBLOCK);
@@ -53,7 +58,7 @@ export async function checkPage(path) {
       total += bytesRead;
     }
     if (total > MAX_PAGE_BYTES) throw new CliError('invalid_file');
-    return diagnoseHtml(buffer.subarray(0, total).toString('utf8'));
+    return buffer.subarray(0, total).toString('utf8');
   } catch (error) {
     if (error instanceof CliError) throw error;
     throw new CliError('file_unreadable');

@@ -30,7 +30,8 @@
     "CONTRIBUTING.md"
   ],
   "scripts": {
-    "test": "node --test",
+    "test": "node --test test/*.test.js",
+    "test:e2e": "node --test e2e/*.test.js",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc",
@@ -38,7 +39,11 @@
   },
   "devDependencies": {
     "@types/node": "26.6.2",
+    "playwright": "1.63.0",
     "prettier": "3.9.9",
     "typescript": "7.0.2"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/client": "2.1.0"
   }
 }
