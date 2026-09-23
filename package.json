@@ -1,0 +1,44 @@
+{
+  "name": "@pubvero/cli",
+  "version": "0.1.0",
+  "description": "Authoring tools and agent skills for Pubvero Pages",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "author": "Murilo Vieira <murilo@pubvero.io>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pubvero/cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/pubvero/cli/issues"
+  },
+  "homepage": "https://github.com/pubvero/cli#readme",
+  "engines": {
+    "node": ">=24"
+  },
+  "bin": {
+    "pubvero": "bin/pubvero.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "skills/",
+    "README.pt-BR.md",
+    "docs/",
+    "SECURITY.md",
+    "CONTRIBUTING.md"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc",
+    "verify": "npm run format:check && npm run typecheck && npm test"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.2",
+    "prettier": "3.9.9",
+    "typescript": "7.0.2"
+  }
+}
