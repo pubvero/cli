@@ -38,7 +38,7 @@
     "verify": "npm run format:check && npm run typecheck && npm test"
   },
   "devDependencies": {
-    "@types/node": "26.6.2",
+    "@types/node": "26.6.3",
     "playwright": "1.63.0",
     "prettier": "3.9.9",
     "typescript": "7.0.2"
