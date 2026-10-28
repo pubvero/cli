@@ -44,6 +44,6 @@
     "typescript": "7.0.2"
   },
   "dependencies": {
-    "@modelcontextprotocol/client": "2.1.0"
+    "@modelcontextprotocol/client": "2.4.0"
   }
 }
